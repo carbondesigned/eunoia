@@ -21,16 +21,12 @@ export async function POST(request: Request) {
   if (!res.ok) throw Error(res.statusText);
   const data = await res.json();
   const results = data.web.results.slice(0, 3); // Limit to first 3 for simplicity
-  console.log(results);
 
   let contentAggregation = '';
   for (const result of results) {
     const content = await scrapeContent(result.url);
     contentAggregation += `${content}\n\n`; // Ensure separation between contents
   }
-
-  // Debug: Log the aggregated content to ensure it's being compiled
-  console.log('Aggregated Content:', contentAggregation);
 
   const input = {
     debug: false,
