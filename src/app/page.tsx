@@ -2,60 +2,23 @@
 import Editor from '@/components/Editor';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
+import {parseStructuredTextToJSON} from '@/lib/parse-text-for-editor';
 import {PaperPlaneIcon} from '@radix-ui/react-icons';
 import {nanoid} from 'nanoid';
-import {useRouter} from 'next/navigation';
-import {JSONContent} from 'novel';
-import {useEffect, useState} from 'react';
-
-type Result = {
-  title: string;
-  url: string;
-};
-
-const resultsToJSONContent = (
-  results: string[],
-  fragmentsPerParagraph = 15
-): JSONContent => {
-  return {
-    type: 'doc',
-    content: results.reduce(
-      (
-        acc: {type: string; content: {type: string; text: string}[]}[],
-        curr,
-        index
-      ) => {
-        if (index % fragmentsPerParagraph === 0) {
-          const paragraphText = results
-            .slice(index, index + fragmentsPerParagraph)
-            .join(' ');
-          acc.push({
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: paragraphText,
-              },
-            ],
-          });
-        }
-        return acc;
-      },
-      []
-    ),
-  };
-};
+import {JSONContent, useEditor} from 'novel';
+import {useEffect, useState, useRef} from 'react';
 
 export default function Home() {
+  const [editorKey, setEditorKey] = useState(() => nanoid());
   const [query, setQuery] = useState('');
   const [content, setContent] = useState<string[]>([]);
   const [editorContent, setEditorContent] = useState<JSONContent>();
   const [isLoading, setIsLoading] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
-  useEffect(() => {
-    setEditorContent(resultsToJSONContent(content));
-  }, [content]);
+  // useEffect(() => {
+  //   setEditorContent(parseStructuredTextToJSON(content.join(' ')));
+  // }, [content]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -75,17 +38,19 @@ export default function Home() {
     const decoder = new TextDecoder();
     setIsLoading(true);
     let done = false;
+    setIsDone(done);
 
     while (!done) {
       const {value, done: doneReading} = await reader.read();
       done = doneReading;
-      setIsLoading(false);
       const chunkValue = decoder.decode(value);
       setContent((prev) => [...prev, chunkValue]);
+
       setIsDone(doneReading);
+      setIsLoading(false);
     }
   };
-  console.log(content);
+  console.log('parsed content', parseStructuredTextToJSON(content.join(' ')));
   return (
     <main className='py-12 max-w-xl m-auto h-screen grid'>
       <form onSubmit={handleSubmit} className='flex items-center gap-4'>
@@ -101,8 +66,9 @@ export default function Home() {
         </Button>
       </form>
 
-      {!isDone && <p>{content}</p>}
-      {isDone && <Editor externalContent={editorContent} />}
+      <p className='duration-100 animate-accordion-up'>{content}</p>
+
+      <Editor externalContent={content} key={editorKey} />
     </main>
   );
 }

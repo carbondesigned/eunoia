@@ -32,7 +32,13 @@ export async function POST(request: Request) {
     debug: false,
     top_k: 50,
     top_p: 0.9,
-    prompt: `you are trying to give someone the most efficient and up to date information on '${query}' here is the top search results: \n\n ${contentAggregation}`,
+    prompt: `you are trying to give someone the most efficient and up to date information on '${query}'.
+    
+    here are the top search results:
+    ${contentAggregation}
+    
+    organize it as "# " for main headings, "## " for subheadings, "- " for bullet points, and blank lines to separate paragraphs.
+    `,
     temperature: 0.6,
     max_new_tokens: 512,
     prompt_template: '<s>[INST] {prompt} [/INST] ',

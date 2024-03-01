@@ -6,40 +6,70 @@ import {LinkSelector} from '@/lib/editor/link-selector';
 import {NodeSelector} from '@/lib/editor/node-selector';
 import {slashCommand, suggestionItems} from '@/lib/editor/slash-command';
 import {TextButtons} from '@/lib/editor/text-buttons';
+import {parseStructuredTextToJSON} from '@/lib/parse-text-for-editor';
 import {
   EditorBubble,
   EditorCommand,
   EditorCommandEmpty,
   EditorCommandItem,
   EditorContent,
+  EditorInstance,
   EditorRoot,
   JSONContent,
   defaultEditorProps,
 } from 'novel';
-import {useEffect, useState} from 'react';
-import {nanoid} from 'nanoid';
+import {useEffect, useRef, useState} from 'react';
 
-const Editor = ({
-  externalContent,
-}: {
-  externalContent: JSONContent | undefined;
-}) => {
+const Editor = ({externalContent}: {externalContent: string[] | undefined}) => {
+  const editorRef = useRef<EditorInstance | null>(null);
+  const lastUpdateIndex = useRef(0); // Tracks the last index of content updated
+
   const [content, setContent] = useState<JSONContent | undefined>(
     externalContent
   );
-  // useEffect(() => {
-  //   setContent(externalContent);
-  // }, [externalContent]);
+  const [cumulativeContent, setCumulativeContent] = useState<string[]>([]);
+
   const [openNode, setOpenNode] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openColor, setOpenColor] = useState(false);
   const extensions = [...defaultExtensions, slashCommand];
-  console.log('content', content);
+
+  useEffect(() => {
+    if (editorRef.current && externalContent) {
+      // Get new content chunks based on the last update index
+      const newContentChunks = externalContent.slice(lastUpdateIndex.current);
+
+      if (newContentChunks.length > 0) {
+        // Update the cumulative content with new chunks
+        const updatedCumulativeContent = [
+          ...cumulativeContent,
+          ...newContentChunks,
+        ];
+        setCumulativeContent(updatedCumulativeContent); // Update the cumulative content state
+
+        // Convert the updated cumulative content into the format expected by the editor
+        const jsonContent = parseStructuredTextToJSON(
+          updatedCumulativeContent.join(' ')
+        );
+        editorRef.current.commands.setContent(jsonContent);
+
+        // Update the content state and the last update index
+        setContent(jsonContent);
+        lastUpdateIndex.current = externalContent.length;
+      }
+    }
+  }, [externalContent, cumulativeContent]);
+
   console.log('external content', externalContent);
+  console.log(editorRef.current?.getText());
+
   return (
     <EditorRoot>
       <EditorContent
-        initialContent={content}
+        onCreate={({editor}) => {
+          editorRef.current = editor;
+        }}
+        initialContent={externalContent}
         onUpdate={({editor}) => {
           const json = editor.getJSON();
           setContent(json);
