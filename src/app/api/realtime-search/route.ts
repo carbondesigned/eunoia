@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     organize it as "# " for main headings, "## " for subheadings, "- " for bullet points, and blank lines to separate paragraphs.
     `,
     temperature: 0.6,
-    max_new_tokens: 512,
+    max_new_tokens: 1024,
     prompt_template: '<s>[INST] {prompt} [/INST] ',
     repetition_penalty: 1.15,
   };

@@ -60,12 +60,10 @@ const Editor = ({externalContent}: {externalContent: string[] | undefined}) => {
     }
   }, [externalContent, cumulativeContent]);
 
-  console.log('external content', externalContent);
-  console.log(editorRef.current?.getText());
-
   return (
     <EditorRoot>
       <EditorContent
+        // className='border border-input bg-background ring-offset-background rounded-md px-3 py-2 text-sm min-h-[50vh]'
         onCreate={({editor}) => {
           editorRef.current = editor;
         }}

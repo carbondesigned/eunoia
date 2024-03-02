@@ -2,11 +2,12 @@
 import Editor from '@/components/Editor';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
+import RealtimeSearchLoading from '@/components/ui/realtime-search-loading';
 import {parseStructuredTextToJSON} from '@/lib/parse-text-for-editor';
-import {PaperPlaneIcon} from '@radix-ui/react-icons';
+import {PaperPlaneIcon, ReloadIcon} from '@radix-ui/react-icons';
 import {nanoid} from 'nanoid';
 import {JSONContent, useEditor} from 'novel';
-import {useEffect, useState, useRef} from 'react';
+import {useEffect, useState} from 'react';
 
 export default function Home() {
   const [editorKey, setEditorKey] = useState(() => nanoid());
@@ -16,12 +17,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
-  // useEffect(() => {
-  //   setEditorContent(parseStructuredTextToJSON(content.join(' ')));
-  // }, [content]);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setIsLoading(true);
     const res = await fetch(`/api/realtime-search?query=${query}`, {
       method: 'POST',
       headers: {
@@ -36,7 +35,6 @@ export default function Home() {
 
     const reader = data.getReader();
     const decoder = new TextDecoder();
-    setIsLoading(true);
     let done = false;
     setIsDone(done);
 
@@ -47,28 +45,46 @@ export default function Home() {
       setContent((prev) => [...prev, chunkValue]);
 
       setIsDone(doneReading);
-      setIsLoading(false);
     }
   };
+  useEffect(() => {
+    if (content.length > 0) {
+      setIsLoading(false);
+    }
+  }, [content]);
   console.log('parsed content', parseStructuredTextToJSON(content.join(' ')));
   return (
-    <main className='py-12 max-w-xl m-auto h-screen grid'>
-      <form onSubmit={handleSubmit} className='flex items-center gap-4'>
-        <Input
-          type='text'
-          name='query'
-          placeholder='What are you looking for?'
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <Button type='submit' size='icon' disabled={isLoading}>
-          <PaperPlaneIcon />
-        </Button>
-      </form>
+    <main className='py-12 max-w-xl mx-auto min-h-screen flex flex-col items-center gap-6'>
+      <section className='text-center'>
+        <h2 className='text-2xl font-bold'>Start your notes here.</h2>
+        <p className='text-gray-500'>
+          You can start writing your notes here and edit them later
+        </p>
+      </section>
+      <div className='w-full space-y-12'>
+        <form onSubmit={handleSubmit} className='flex items-center gap-4'>
+          <Input
+            type='text'
+            name='query'
+            placeholder='What are you looking for?'
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Button type='submit' size='icon' disabled={isLoading}>
+            {isLoading ? (
+              <ReloadIcon className='animate-spin' />
+            ) : (
+              <PaperPlaneIcon />
+            )}
+          </Button>
+        </form>
 
-      <p className='duration-100 animate-accordion-up'>{content}</p>
-
-      <Editor externalContent={content} key={editorKey} />
+        {isLoading ? (
+          <RealtimeSearchLoading />
+        ) : (
+          <Editor externalContent={content} key={editorKey} />
+        )}
+      </div>
     </main>
   );
 }

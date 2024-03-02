@@ -81,7 +81,10 @@ export function parseStructuredTextToJSON(structuredText: string): JSONContent {
           currentBlock = {type: 'paragraph', content: []}; // Start new paragraph
         }
         // For paragraphs, use the original line to preserve leading spaces within the paragraph content
-        currentBlock.content.push({type: 'text', text: originalLine});
+        currentBlock.content.push({
+          type: 'text',
+          text: originalLine.trimStart(),
+        });
       }
     }
   });
