@@ -32,6 +32,7 @@ interface CodeBlock {
 }
 
 export function parseStructuredTextToJSON(structuredText: string): JSONContent {
+  structuredText = preprocessContent(structuredText);
   const lines = structuredText.split('\n');
   const jsonContent: JSONContent = {type: 'doc', content: []};
 
@@ -94,6 +95,15 @@ export function parseStructuredTextToJSON(structuredText: string): JSONContent {
   return jsonContent;
 }
 
+function preprocessContent(content: string): string {
+  // Ensure numbered list items start on a new line
+  const formattedContent = content.replace(/([^\n])(\d+\.\s+)/g, '$1\n$2');
+
+  // Additional preprocessing can be added here as needed
+
+  return formattedContent;
+}
+
 // Adjust pushCurrentBlock to accept any block type including CodeBlock
 function pushCurrentBlock(
   jsonContent: JSONContent,
@@ -105,12 +115,18 @@ function pushCurrentBlock(
 }
 
 function createHeading(text: string, level: number): Heading {
-  return {type: 'heading', attrs: {level}, content: [{type: 'text', text}]};
+  return {
+    type: 'heading',
+    attrs: {level},
+    content: [{type: 'text', text: text.trimStart()}],
+  };
 }
 
 function createListItem(text: string): ListItem {
   return {
     type: 'listItem',
-    content: [{type: 'paragraph', content: [{type: 'text', text}]}],
+    content: [
+      {type: 'paragraph', content: [{type: 'text', text: text.trimStart()}]},
+    ],
   };
 }
