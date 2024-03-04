@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 
 export async function scrapeContent(url: string): Promise<string> {
+  const startTime = performance.now(); // Start timing
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   page.setUserAgent(
@@ -8,7 +9,7 @@ export async function scrapeContent(url: string): Promise<string> {
   );
 
   try {
-    await page.goto(url, {waitUntil: 'networkidle2'});
+    await page.goto(url, {waitUntil: 'domcontentloaded'});
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       if (['image', 'stylesheet'].includes(request.resourceType())) {
@@ -29,6 +30,12 @@ export async function scrapeContent(url: string): Promise<string> {
         });
       return texts.join('\n');
     });
+    const endTime = performance.now(); // End timing
+    console.log(
+      `Scraping content for ${url} took ${
+        (endTime - startTime) / 1000
+      } seconds.`
+    );
     return content;
   } catch (error) {
     console.error(`Error fetching content for ${url}:`, error);
