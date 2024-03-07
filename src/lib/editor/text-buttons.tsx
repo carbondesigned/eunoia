@@ -1,68 +1,68 @@
-import {cn} from '@/lib/utils';
-import {EditorBubbleItem, useEditor} from 'novel';
+import { cn } from "@/lib/utils"
+import { EditorBubbleItem, useEditor } from "novel"
 import {
   BoldIcon,
   ItalicIcon,
   UnderlineIcon,
   StrikethroughIcon,
   CodeIcon,
-} from 'lucide-react';
-import type {SelectorItem} from './node-selector';
-import {Button} from '@/components/ui/button';
+} from "lucide-react"
+import type { SelectorItem } from "./node-selector"
+import { Button } from "@/components/ui/button"
 
 export const TextButtons = () => {
-  const {editor} = useEditor();
-  if (!editor) return null;
+  const { editor } = useEditor()
+  if (!editor) return null
   const items: SelectorItem[] = [
     {
-      name: 'bold',
-      isActive: () => editor.isActive('bold'),
+      name: "bold",
+      isActive: () => editor.isActive("bold"),
       command: () => editor.chain().focus().toggleBold().run(),
       icon: BoldIcon,
     },
     {
-      name: 'italic',
-      isActive: () => editor.isActive('italic'),
+      name: "italic",
+      isActive: () => editor.isActive("italic"),
       command: () => editor.chain().focus().toggleItalic().run(),
       icon: ItalicIcon,
     },
     {
-      name: 'underline',
-      isActive: () => editor.isActive('underline'),
+      name: "underline",
+      isActive: () => editor.isActive("underline"),
       command: () => editor.chain().focus().toggleUnderline().run(),
       icon: UnderlineIcon,
     },
     {
-      name: 'strike',
-      isActive: () => editor.isActive('strike'),
+      name: "strike",
+      isActive: () => editor.isActive("strike"),
       command: () => editor.chain().focus().toggleStrike().run(),
       icon: StrikethroughIcon,
     },
     {
-      name: 'code',
-      isActive: () => editor.isActive('code'),
+      name: "code",
+      isActive: () => editor.isActive("code"),
       command: () => editor.chain().focus().toggleCode().run(),
       icon: CodeIcon,
     },
-  ];
+  ]
   return (
-    <div className='flex'>
+    <div className="flex">
       {items.map((item, index) => (
         <EditorBubbleItem
           key={index}
           onSelect={(editor) => {
-            item.command(editor);
+            item.command(editor)
           }}
         >
-          <Button size='icon' className='rounded-none' variant='ghost'>
+          <Button size="icon" className="rounded-none" variant="ghost">
             <item.icon
-              className={cn('h-4 w-4', {
-                'text-blue-500': item.isActive(editor),
+              className={cn("h-4 w-4", {
+                "text-blue-500": item.isActive(editor),
               })}
             />
           </Button>
         </EditorBubbleItem>
       ))}
     </div>
-  );
-};
+  )
+}
